@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="image_filepath" default="image"/>
+    
+
+    <node pkg="manual_calibration" name="selectPointCamera" type="selectPointCamera" output="screen">
+        <param name="image_filepath" value="$(find manual_calibration)/data/imgFiles/$(arg image_filepath).png" />  
+
+    </node>
+
+</launch>
+

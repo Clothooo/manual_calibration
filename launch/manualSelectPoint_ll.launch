@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="pcd_filename1" default="cloud1"/>
+    <arg name="pcd_filename2" default="cloud2"/>
+    <arg name="auto_mode" default="false"/>
+    <arg name="start_flag_lidar1" default="/pcdTransfer/pcdTransferFinished"/>
+    <arg name="start_flag_lidar2" default="/pcdTransfer/pcdTransferFinished"/>
+
+    <group ns="lidar1">
+        <node pkg="manual_calibration" name="selectPointLidar" type="selectPointLidar" output="screen">
+            <param name="pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg pcd_filename1).pcd" /> 
+            <param name="lidar_idx" value="1"/>
+            <param name="auto_mode" value="$(arg auto_mode)"/>
+            <param name="start_flag" value="$(arg start_flag_lidar1)"/>
+        </node>
+    </group>
+
+    <group ns="lidar2">
+        <node pkg="manual_calibration" name="selectPointLidar" type="selectPointLidar" output="screen">
+            <param name="pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg pcd_filename2).pcd" />  
+            <param name="lidar_idx" value="2"/>
+            <param name="auto_mode" value="$(arg auto_mode)"/>
+            <param name="start_flag" value="$(arg start_flag_lidar2)"/>
+        </node>
+    </group>
+
+</launch>
+

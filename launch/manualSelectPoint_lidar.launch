@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="pcd_filename" default="cloud"/>
+    
+
+    <node pkg="manual_calibration" name="selectPointLidar" type="selectPointLidar" output="screen">
+        <param name="pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg pcd_filename).pcd" />  
+
+    </node>
+
+</launch>
+

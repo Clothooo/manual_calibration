@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="image_tp" default="/usb_cam/image_raw"/>
+    <arg name="lidar_tp" default="/livox/lidar"/>
+    <arg name="output_img_filename" default="image"/>
+    <arg name="output_pcd_filename" default="cloud"/>
+    <arg name="use_compress_img" default="false"/>
+    <arg name="threshold_lidar" default="5"/>
+
+    <arg name="camParam_filename" default="cam_intrinsic.yaml"/>
+    <arg name="exParam_filename" default="L_to_C_exParam"/>
+    
+    <!-- 1. data proc -->
+    <include file="$(find manual_calibration)/launch/dataCapture_lc.launch">
+        <arg name="image_tp" value="$(arg image_tp)"/>
+        <arg name="lidar_tp" value="$(arg lidar_tp)"/>
+        <arg name="output_img_filename" value="$(arg output_img_filename)"/>
+        <arg name="use_compress_img" value="$(arg use_compress_img)"/>
+        <arg name="output_pcd_filename" value="$(arg output_pcd_filename)"/>
+        <arg name="threshold_lidar" value="$(arg threshold_lidar)"/>
+        
+    </include>
+   
+    <!-- 2. manual feature selection -->
+    <include file="$(find manual_calibration)/launch/manualSelectPoint_lc.launch">
+        <arg name="auto_mode" value="true"/> 
+        <arg name="pcd_filename" value="$(arg output_pcd_filename)"/>
+        <arg name="image_filename" value="$(arg output_img_filename)"/>
+        <arg name="start_flag_cam" default="/camera/imgCapture/imgCaptureFinished"/>
+        <arg name="start_flag_lidar" default="/lidar/pcdTransfer/pcdTransferFinished"/>
+    </include> 
+
+    <!-- 3. calibration -->
+    <node pkg="manual_calibration" name="l2cCalibration" type="l2cCalibration" output="screen" required="true">
+        <param name="auto_mode" value="true"/>
+        <param name="lidar_point_tp" value="/lidar/selectPointLidar/picked_points" />  
+        <param name="camera_point_tp" value="/camera/selectPointCamera/picked_points" />  
+        <param name="lidar_pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg output_pcd_filename).pcd" /> 
+        <param name="camera_img_filepath" value="$(find manual_calibration)/data/imgFiles/$(arg output_img_filename).png" /> 
+        <param name="camera_param_filepath" value="$(find manual_calibration)/data/camParam/$(arg camParam_filename)"/>
+        <param name="color_intenisty" value="5"/>
+        <param name="color_distance" value="0.8"/>
+        <rosparam param="init_TR_L2C">  [0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0] </rosparam>
+
+        <param name="exParam_filepath" value="$(find manual_calibration)/data/calibResult/$(arg exParam_filename)"/>
+
+        <param name="start_flag_cam" value="/camera/imgCapture/imgCaptureFinished"/>
+        <param name="start_flag_lidar" value="/lidar/pcdTransfer/pcdTransferFinished"/>
+    </node>
+
+
+    
+</launch>
+

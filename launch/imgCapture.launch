@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="image_tp" default="/usb_cam/image_raw"/>
+    <arg name="output_img_filename" default="image"/>
+    <arg name="use_compress_img" default="false"/>
+    
+    <group if="$(arg use_compress_img)">
+        <node name="decompress_image" pkg="image_transport" type="republish" args="compressed in:=$(arg image_tp) raw out:=$(arg image_tp)" />
+    </group>
+
+    <node pkg="manual_calibration" name="imgCapture" type="imgCapture" output="screen">
+        <param name="image_tp" value="$(arg image_tp)" /> 
+        <!-- <param name="image_tp" value="/usb_cam/image_raw" />  -->
+
+        <param name="output_img_path" value="$(find manual_calibration)/data/imgFiles/$(arg output_img_filename)" />  <!-- path to save new image files -->
+
+        <param name="imgCaptureFinished" value="false"/>
+    </node>
+
+</launch>
+

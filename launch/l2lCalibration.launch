@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="pcd_filename" default="cloud"/>
+    <arg name="lidar1_point_tp" default="/lidar1/selectPointLidar/picked_points"/>
+    <arg name="lidar2_point_tp" default="/lidar2/selectPointLidar/picked_points"/>
+    <arg name="lidar1_pcd_filename" default="cloud1"/>
+    <arg name="lidar2_pcd_filename" default="cloud2"/>
+    <arg name="exParam_filename" default="L1_to_L2_exParam"/>
+    
+
+    <node pkg="manual_calibration" name="l2lCalibration" type="l2lCalibration" output="screen">
+        <param name="lidar1_point_tp" value="$(arg lidar1_point_tp)" />  
+        <param name="lidar2_point_tp" value="$(arg lidar2_point_tp)" />  
+        <param name="lidar1_pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg lidar1_pcd_filename).pcd" /> 
+        <param name="lidar2_pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg lidar2_pcd_filename).pcd" /> 
+
+        <param name="exParam_filepath" value="$(find manual_calibration)/data/calibResult/$(arg exParam_filename)"/>
+    </node>
+
+</launch>
+

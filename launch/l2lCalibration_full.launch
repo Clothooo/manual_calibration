@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="lidar_tp1" default="/livox1/lidar"/>
+    <arg name="lidar_tp2" default="/livox2/lidar"/>
+    <arg name="output_pcd_filename1" default="cloud1"/>
+    <arg name="output_pcd_filename2" default="cloud2"/>
+    <arg name="use_compress_img" default="false"/>
+    <arg name="threshold_lidar" default="5"/>
+
+    <arg name="camParam_filename" default="cam_intrinsic.yaml"/>
+    <arg name="exParam_filename" default="L_to_C_exParam"/>
+    
+    <!-- 1. data proc -->
+    <include file="$(find manual_calibration)/launch/dataCapture_ll.launch">
+        <arg name="lidar_tp1" value="$(arg lidar_tp1)"/>
+        <arg name="lidar_tp2" value="$(arg lidar_tp2)"/>
+        <arg name="output_pcd_filename1" value="$(arg output_pcd_filename1)"/>
+        <arg name="output_pcd_filename2" value="$(arg output_pcd_filename2)"/>
+        <arg name="threshold_lidar" value="$(arg threshold_lidar)"/>   
+    </include>
+    
+    <!-- 2. manual feature selection -->
+    <include file="$(find manual_calibration)/launch/manualSelectPoint_ll.launch">
+        <arg name="auto_mode" value="true"/> 
+        <arg name="pcd_filename1" value="$(arg output_pcd_filename1)"/>
+        <arg name="pcd_filename2" value="$(arg output_pcd_filename2)"/>
+        <arg name="start_flag_lidar1" value="/lidar1/pcdTransfer/pcdTransferFinished"/>
+        <arg name="start_flag_lidar2" value="/lidar2/pcdTransfer/pcdTransferFinished"/>
+    </include> 
+
+    <!-- 3. calibration -->
+    <node pkg="manual_calibration" name="l2lCalibration" type="l2lCalibration" output="screen" required="true">
+        <param name="auto_mode" value="true"/>
+        <param name="lidar1_point_tp" value="/lidar1/selectPointLidar/picked_points" />  
+        <param name="lidar2_point_tp" value="/lidar2/selectPointLidar/picked_points" />  
+        <param name="lidar1_pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg output_pcd_filename1).pcd" /> 
+        <param name="lidar2_pcd_filepath" value="$(find manual_calibration)/data/pcdFiles/$(arg output_pcd_filename2).pcd" /> 
+        <param name="exParam_filepath" value="$(find manual_calibration)/data/calibResult/$(arg exParam_filename)"/>
+
+        <param name="start_flag_lidar1" value="/lidar1/pcdTransfer/pcdTransferFinished"/>
+        <param name="start_flag_lidar2" value="/lidar2/pcdTransfer/pcdTransferFinished"/>
+    </node>
+    
+</launch>
+
