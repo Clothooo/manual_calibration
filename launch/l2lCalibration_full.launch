@@ -4,7 +4,6 @@
     <arg name="lidar_tp2" default="/livox2/lidar"/>
     <arg name="output_pcd_filename1" default="cloud1"/>
     <arg name="output_pcd_filename2" default="cloud2"/>
-    <arg name="use_compress_img" default="false"/>
     <arg name="threshold_lidar" default="5"/>
 
     <arg name="camParam_filename" default="cam_intrinsic.yaml"/>

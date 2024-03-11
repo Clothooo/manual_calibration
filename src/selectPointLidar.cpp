@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <boost/thread.hpp>
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -12,6 +13,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/filters/extract_indices.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -32,12 +34,13 @@ boost::mutex cloud_mutex;
 
 struct callback_args{
     // structure used to pass arguments to the callback function
+    CloudT::Ptr raw_pc;
     CloudT::Ptr clicked_points_3d;
+    
     pcl::visualization::PCLVisualizer::Ptr viewerPtr;
 };
 
-void
-pp_callback(const pcl::visualization::PointPickingEvent& event, void* args)
+void pp_callback(const pcl::visualization::PointPickingEvent& event, void* args)
 {
     struct callback_args* data = (struct callback_args *)args;
     if (event.getPointIndex() == -1)
@@ -45,8 +48,6 @@ pp_callback(const pcl::visualization::PointPickingEvent& event, void* args)
     PointT current_point;
     event.getPoint(current_point.x, current_point.y, current_point.z);
     // need to add removement of repeated point
-
-
 
     data->clicked_points_3d->points.push_back(current_point);
     // Draw clicked points in white:
@@ -56,6 +57,35 @@ pp_callback(const pcl::visualization::PointPickingEvent& event, void* args)
     data->viewerPtr->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10, "clicked_points");
     cout << "[" << priv_nh_str << "]";
     std::cout << current_point.x << " " << current_point.y << " " << current_point.z << std::endl;
+}
+
+void kb_callback(const pcl::visualization::KeyboardEvent& event, void* args)
+{
+    struct callback_args* data = (struct callback_args *)args;
+    if (event.getKeySym() == "KP_1" && event.keyDown())
+    {
+        cout << "[" << priv_nh_str << "] x-color" << endl;
+        pcl::visualization::PointCloudColorHandlerGenericField<PointT> x_color(data->raw_pc, "x");
+        data->viewerPtr->updatePointCloud(data->raw_pc, x_color, "raw_cloud");
+    }
+    else if (event.getKeySym() == "KP_2" && event.keyDown())
+    {
+        cout << "[" << priv_nh_str << "] y-color" << endl;
+        pcl::visualization::PointCloudColorHandlerGenericField<PointT> y_color(data->raw_pc, "y");
+        data->viewerPtr->updatePointCloud(data->raw_pc, y_color, "raw_cloud");
+    }    
+    else if (event.getKeySym() == "KP_3" && event.keyDown())
+    {
+        cout << "[" << priv_nh_str << "] z-color" << endl;
+        pcl::visualization::PointCloudColorHandlerGenericField<PointT> z_color(data->raw_pc, "z");
+        data->viewerPtr->updatePointCloud(data->raw_pc, z_color, "raw_cloud");
+    }    
+    else if (event.getKeySym() == "KP_4" && event.keyDown())
+    {
+        cout << "[" << priv_nh_str << "] i-color" << endl;
+        pcl::visualization::PointCloudColorHandlerGenericField<PointT> i_color(data->raw_pc, "intensity");
+        data->viewerPtr->updatePointCloud(data->raw_pc, i_color, "raw_cloud");
+    }
 }
 
 void publishPC(const ros::Publisher& pub, const CloudT& cloud)
@@ -112,15 +142,20 @@ int main(int argc, char **argv) {
     // Display pointcloud
     pcl::visualization::PointCloudColorHandlerGenericField<PointT> i_color(cloud, "intensity");    
     viewer->addPointCloud<PointT>(cloud, i_color, "raw_cloud");
+    // viewer->addPointCloud<PointT>(cloud, "raw_cloud");
     viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "raw_cloud");
 
     // Add point picking callback to viewer
     struct callback_args cb_args;
     CloudT::Ptr clicked_points_3d(new CloudT);
     cb_args.clicked_points_3d = clicked_points_3d;
+    cb_args.raw_pc = cloud;
     cb_args.viewerPtr = pcl::visualization::PCLVisualizer::Ptr(viewer);
     viewer->registerPointPickingCallback(pp_callback, (void*)&cb_args);
     cout << "[" << priv_nh_str << "] Shift+click on feature points, then press 'Q'..." << endl;
+    viewer->registerKeyboardCallback(kb_callback, (void *)&cb_args);
+    cout << "[" << priv_nh_str << "] key [1, 2, 3, 4] to change color(x, y, z, intensity)..." << endl;
+    // viewer->registerKeyboardCallback
 
     // Spin until 'Q' is pressed
     // viewer->spin();
